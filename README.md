@@ -77,7 +77,7 @@ Both halves are required. A patch entry **replaces that row's whole `config`** r
 | DSH | `@deepseek-ai/dsh-desktop` 0.2.x (targets the `ctx.web` provider seam) |
 | Node | ≥ 18.17 |
 | Credential | `DEEPSEEK_API_KEY` in `$DSH_HOME/.credentials.yaml`, or a literal `apiKey` |
-| Rust | **not needed** — `bin/dsh-web-tools-deepseek-win32-x64.exe` is committed. Build it for Linux/macOS, or take a release asset (zip uploads do not keep the executable bit: `chmod +x` it). |
+| Rust | **not needed** — `bin/dsh-web-tools-deepseek-win32-x64.exe` is committed. Build it for Linux/macOS, or take a [release asset](https://github.com/CarbonAnime/dsh-web-tools-deepseek/releases/latest) (zip uploads do not keep the executable bit: `chmod +x` it). |
 
 ### Building the engine
 

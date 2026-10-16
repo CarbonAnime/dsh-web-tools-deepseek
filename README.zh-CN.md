@@ -77,7 +77,7 @@ dsh plugin --profile desktop add "github:CarbonAnime/dsh-web-tools-deepseek"
 | DSH | `@deepseek-ai/dsh-desktop` 0.2.x（依赖 `ctx.web` 提供方接缝） |
 | Node | ≥ 18.17 |
 | 凭据 | `$DSH_HOME/.credentials.yaml` 里的 `DEEPSEEK_API_KEY`，或字面 `apiKey` |
-| Rust | **不需要**——`bin/dsh-web-tools-deepseek-win32-x64.exe` 已随仓库提交；Linux/macOS 可自行编译或取 Release 附件（附件不保留可执行位，下完记得 `chmod +x`） |
+| Rust | **不需要**——`bin/dsh-web-tools-deepseek-win32-x64.exe` 已随仓库提交；Linux/macOS 可自行编译或取 [Release 附件](https://github.com/CarbonAnime/dsh-web-tools-deepseek/releases/latest)（附件不保留可执行位，下完记得 `chmod +x`） |
 
 ### 自行编译引擎
 
