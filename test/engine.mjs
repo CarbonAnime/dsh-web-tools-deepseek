@@ -14,16 +14,20 @@ import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { createServer } from 'node:http'
 
-import { resolveEnginePath } from '../lib/engine.js'
+import { engineCandidates, resolveEnginePath } from '../lib/engine.js'
 
 // Resolve the binary exactly the way the plugin does, so this test also proves the
 // production lookup (env override → bin/<platform>-<arch> → bin/ → target/). A
 // private shortcut here is how CI ended up spawning a `target/debug` build that
-// only ever exists on a developer machine.
+// only ever exists on a developer machine. Note that the host architecture is not
+// the built architecture when a runner cross-compiles, which is why CI pins this
+// binary with DSH_WEB_TOOLS_DEEPSEEK_BIN.
 const BIN = resolveEnginePath()
-if (!existsSync(BIN)) {
-  console.error(`engine.mjs: no engine binary at ${BIN}`)
+if (BIN === undefined || !existsSync(BIN)) {
+  console.error(`engine.mjs: no engine binary found (resolved: ${BIN})`)
   console.error('  build one with:  cargo build --release && node scripts/stage-engine.mjs')
+  console.error('  tried:')
+  for (const candidate of engineCandidates()) console.error(`    ${candidate}`)
   process.exit(1)
 }
 

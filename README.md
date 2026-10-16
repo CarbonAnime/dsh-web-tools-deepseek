@@ -77,7 +77,7 @@ Both halves are required. A patch entry **replaces that row's whole `config`** r
 | DSH | `@deepseek-ai/dsh-desktop` 0.2.x (targets the `ctx.web` provider seam) |
 | Node | ≥ 18.17 |
 | Credential | `DEEPSEEK_API_KEY` in `$DSH_HOME/.credentials.yaml`, or a literal `apiKey` |
-| Rust | **not needed** — `bin/dsh-web-tools-deepseek-win32-x64.exe` is committed. Build it for Linux/macOS, or take a release asset. |
+| Rust | **not needed** — `bin/dsh-web-tools-deepseek-win32-x64.exe` is committed. Build it for Linux/macOS, or take a release asset (zip uploads do not keep the executable bit: `chmod +x` it). |
 
 ### Building the engine
 
@@ -341,7 +341,7 @@ The second startup line is the one to read first. **"Registered" and "selected" 
 * **No streaming or progress events** — a call resolves when the API answers.
 * **`need_content` is deliberately unused**, so page text always needs a second `fetch` call (and its own ¥0.005).
 * **The fallback target is read from a private seam field** (`ctx.web.searchProviders`). There is no public way to look up another provider, and `ctx.web.search()` would recurse. If the seam renames that field the fallback degrades to "no fallback", with a warning, rather than breaking search.
-* **The committed binary is Windows x64.** Other platforms build their own or take a release asset; the workflow covers Windows, Linux and both macOS architectures.
+* **The committed binary is Windows x64.** Other platforms build their own or take a release asset; the workflow covers Windows, Linux and both macOS architectures. Release assets do not carry the executable bit, so `chmod +x` after downloading.
 * **HTTP uses `reqwest` with `default-tls`** (schannel on Windows), not rustls: a rustls crypto provider needs a C toolchain and NASM to build, which would make `cargo build` fail on an ordinary machine.
 * **`dsh --profile desktop --dump-config` is unavailable** (`profile "desktop" is managed exclusively by the Electron application`), so acceptance evidence comes from live behaviour plus the wiring self-check log.
 

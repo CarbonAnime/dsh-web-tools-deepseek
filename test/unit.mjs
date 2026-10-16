@@ -648,7 +648,10 @@ it('apply registers both providers, starts the engine, and reports the seam wiri
   ])
   assert.match(log, /registered search="deepseek-tools-api" fetch="deepseek-tools-api"/)
   assert.match(log, /fallback=deepseek-official:both/)
-  assert.match(log, /engine=[^\s]*dsh-web-tools-deepseek[^\s]*\.exe/, 'the diagnostics name the binary that was found')
+  // Exactly the resolved path, not a shape: the name carries a platform/arch tag
+  // and an extension only on Windows, and a regex that spells either out is a
+  // portability bug waiting for a CI runner.
+  assert.ok(log.includes(`engine=${resolveEnginePath()}`), 'the diagnostics name the binary that was found')
   assert.match(log, /engine configured/, 'the real engine answered the handshake')
   assert.match(log, /seam row is wired to this plugin/)
 })
