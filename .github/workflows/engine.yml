@@ -1,10 +1,8 @@
-/**
- * Build the Rust engine on every platform, prove it, and publish the binaries.
- *
- * `bin/` ships a Windows x64 engine so that a plain checkout is usable without a
- * toolchain; this workflow is what keeps the other platforms, and the release
- * assets, honest.
- */
+# Build the Rust engine on every platform, prove it, and publish the binaries.
+#
+# `bin/` ships a Windows x64 engine so that a plain checkout is usable without a
+# toolchain; this workflow is what keeps the other platforms, and the release
+# assets, honest.
 
 name: engine
 
@@ -38,14 +36,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Both macOS architectures build on one arm64 runner: the macOS SDK
+        # targets either, and the retired macos-13 label is not worth depending on.
         include:
-          - { os: windows-latest, platform: win32,  arch: x64 }
-          - { os: ubuntu-latest,  platform: linux,  arch: x64 }
-          - { os: macos-14,       platform: darwin, arch: arm64 }
-          - { os: macos-13,       platform: darwin, arch: x64 }
+          - { os: windows-latest, platform: win32,  arch: x64,   target: x86_64-pc-windows-msvc }
+          - { os: ubuntu-latest,  platform: linux,  arch: x64,   target: x86_64-unknown-linux-gnu }
+          - { os: macos-14,       platform: darwin, arch: arm64, target: aarch64-apple-darwin }
+          - { os: macos-14,       platform: darwin, arch: x64,   target: x86_64-apple-darwin }
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-node@v4
         with:
@@ -54,9 +56,9 @@ jobs:
       # but a git checkout installs it properly.
       - run: npm install --no-audit --no-fund
         continue-on-error: true
-      - run: cargo build --release
-      - run: node scripts/stage-engine.mjs --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
-      - name: Protocol conformance (mock server, no API key)
+      - run: cargo build --release --target ${{ matrix.target }}
+      - run: node scripts/stage-engine.mjs --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --from target/${{ matrix.target }}/release
+      - name: Protocol conformance (mock HTTP server, no API key)
         run: node test/engine.mjs
       - name: Plugin unit tests (no API key)
         run: node test/unit.mjs

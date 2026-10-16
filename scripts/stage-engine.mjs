@@ -8,7 +8,11 @@
  * without any configuration.
  *
  * Usage:
- *   node scripts/stage-engine.mjs [--debug] [--platform win32] [--arch x64]
+ *   node scripts/stage-engine.mjs [--debug] [--platform win32] [--arch x64] [--from target/<triple>/release]
+ *
+ * `--from` exists because a cross-compiled build lands in `target/<triple>/<profile>/`
+ * rather than `target/<profile>/`, which is how CI produces both macOS architectures
+ * from one runner.
  *
  * @module dsh-web-tools-deepseek/scripts/stage-engine
  */
@@ -31,7 +35,8 @@ const arch = arg('--arch') ?? process.arch
 const extension = platform === 'win32' ? '.exe' : ''
 const basename = `dsh-web-tools-deepseek${extension}`
 
-const source = path.join(root, 'target', profile, basename)
+const directory = arg('--from') ?? path.join('target', profile)
+const source = path.resolve(root, directory, basename)
 if (!existsSync(source)) {
   console.error(`stage-engine: ${source} does not exist — run \`cargo build --release\` first.`)
   process.exit(1)
