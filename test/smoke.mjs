@@ -22,7 +22,12 @@ import os from 'node:os'
 
 const BASE_URL = 'https://api.deepseek.com'
 const QUERY = 'DeepSeek 开放平台 搜索 API 定价'
-const BLOCKED_URL = 'https://api-docs.deepseek.com/'
+const BLOCKED_URL = 'http://169.254.169.254/latest/meta-data/'
+// A URL the live API refuses. This used to be https://api-docs.deepseek.com/,
+// but the service fetches that page normally now — which policy it applies is
+// the service's to change, and pinning a specific page made the suite rot. The
+// link-local metadata endpoint is refused for structural reasons instead, and
+// refusals are free.
 
 /** Resolve the API key without ever echoing it. */
 function readApiKey() {
@@ -153,9 +158,10 @@ check('body equals API content (modulo the optional title heading)',
 check('title visible to the model', body.includes('# ') || rawContent.startsWith('#'))
 console.log(`  provider head: ${JSON.stringify(body.slice(0, 160))}`)
 
-console.log('\n== fetch (403 verdict path) ==')
+console.log('\n== fetch (verdict path: refused URL) ==')
 const blocked = await registered.fetch.fetch({ url: BLOCKED_URL })
-check('403 returned as a result, not a throw', blocked.statusCode === 403, `statusCode=${blocked.statusCode}`)
+check('a refused URL comes back as a result, not a throw',
+  blocked.statusCode === 403 || blocked.statusCode === 404, `statusCode=${blocked.statusCode}`)
 check('body is marked as not-page-content', blocked.body.content.startsWith('[FETCH FAILED — NOT PAGE CONTENT]'))
 check('verdict body carries no page markup', !blocked.body.content.includes('<html'))
 console.log(`  body: ${JSON.stringify(blocked.body.content.slice(0, 220))}`)
