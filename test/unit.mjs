@@ -221,7 +221,7 @@ it('engineCandidates prefers the platform-tagged binary over the plain one', () 
   assert.equal(candidates[0], path.resolve('D:/custom.exe'), 'an explicit path wins outright')
   assert.ok(candidates[1].endsWith(path.join('bin', 'dsh-web-tools-deepseek-win32-arm64.exe')))
   assert.ok(candidates[2].endsWith(path.join('bin', 'dsh-web-tools-deepseek.exe')))
-  const linux = engineCandidates({ root: 'pkg', platform: 'linux', arch: 'x64' })
+  const linux = engineCandidates({ root: 'pkg', platform: 'linux', arch: 'x64', env: {} })
   assert.equal(linux[0], path.join('pkg', 'bin', 'dsh-web-tools-deepseek-linux-x64'))
 })
 
@@ -229,6 +229,19 @@ it('resolveEnginePath honours the environment override', () => {
   const found = resolveEnginePath({ env: { DSH_WEB_TOOLS_DEEPSEEK_BIN: process.execPath }, root: '/nowhere' })
   assert.equal(found, path.resolve(process.execPath))
   assert.equal(resolveEnginePath({ env: {}, root: '/nowhere-does-not-exist' }), undefined)
+})
+
+// `Config.enginePath` defaults to the empty string, so `createEngine` always
+// passes a non-nullish `configured`. Treating that empty string as a real value
+// sends the env override down the drain, and the failure only shows up on a
+// machine that actually relies on the variable — which is exactly the CI runner.
+it('an empty configured path does not shadow the environment override', () => {
+  const env = { DSH_WEB_TOOLS_DEEPSEEK_BIN: process.execPath }
+  assert.equal(resolveEnginePath({ configured: '', env, root: '/nowhere' }), path.resolve(process.execPath))
+  assert.equal(resolveEnginePath({ configured: '   ', env, root: '/nowhere' }), path.resolve(process.execPath))
+  assert.equal(engineCandidates({ configured: '', env, root: 'pkg', platform: 'linux', arch: 'x64' })[0],
+    path.resolve(process.execPath), 'the override is tried before any bundled binary')
+  assert.equal(resolveEnginePath({ configured: '', env: {}, root: '/nowhere-does-not-exist' }), undefined)
 })
 
 it('toFrameConfig uses the exact keys the engine deserializes', () => {
