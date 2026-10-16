@@ -122,7 +122,13 @@ function fakeEngine(options = {}) {
       children.push(child)
       return child
     },
-    env: {},
+    // Nothing here ever executes the binary — `spawnImpl` stands in for it — so
+    // aim the resolver at a file that is guaranteed to exist instead of at
+    // whatever this machine happens to have staged. Otherwise these checks pass
+    // or fail according to the host architecture, which is how a green local run
+    // became a red darwin-x64 job: that runner is arm64 cross-building x64, so
+    // the arch-tagged `bin/` name it probed for was never the one staged.
+    env: { DSH_WEB_TOOLS_DEEPSEEK_BIN: process.execPath },
     ...options.createOptions,
   })
   return { engine, children, diag, last: () => children[children.length - 1] }
@@ -364,7 +370,7 @@ it('sends nothing, and starts nothing, when the signal is already aborted', asyn
 })
 
 it('reports a missing binary instead of spawning one', async () => {
-  const { engine, children } = fakeEngine({ createOptions: { root: '/nowhere-at-all' } })
+  const { engine, children } = fakeEngine({ createOptions: { root: '/nowhere-at-all', env: {} } })
   assert.equal(engine.available(), false)
   assert.equal(engine.path, undefined)
   const error = await engine.search({ query: 'x', apiKey: 'k' }).then(() => undefined, (thrown) => thrown)
