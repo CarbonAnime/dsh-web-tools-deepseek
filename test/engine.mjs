@@ -11,14 +11,21 @@
 //   DSH_WEB_TOOLS_DEEPSEEK_BIN=/path/to/binary node test/engine.mjs
 
 import { spawn } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import { createServer } from 'node:http'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const BIN =
-  process.env.DSH_WEB_TOOLS_DEEPSEEK_BIN ??
-  path.join(ROOT, 'target', 'debug', process.platform === 'win32' ? 'dsh-web-tools-deepseek.exe' : 'dsh-web-tools-deepseek')
+import { resolveEnginePath } from '../lib/engine.js'
+
+// Resolve the binary exactly the way the plugin does, so this test also proves the
+// production lookup (env override → bin/<platform>-<arch> → bin/ → target/). A
+// private shortcut here is how CI ended up spawning a `target/debug` build that
+// only ever exists on a developer machine.
+const BIN = resolveEnginePath()
+if (!existsSync(BIN)) {
+  console.error(`engine.mjs: no engine binary at ${BIN}`)
+  console.error('  build one with:  cargo build --release && node scripts/stage-engine.mjs')
+  process.exit(1)
+}
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 const failures = []
