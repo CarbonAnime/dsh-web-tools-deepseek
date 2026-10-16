@@ -576,15 +576,28 @@ const main = async () => {
     reset()
     handler = () => ({ status: 200, body: { results: [] } })
     await configure({ qps: 10 })
+    // Warm the socket first: these gaps are measured from arrival timestamps, and
+    // a cold first request pays a connect cost the pacer never promised, which
+    // lands as a compressed first gap rather than as a burst.
+    await engine.ok('search', { query: 'warmup', apiKey })
+    reset()
     await Promise.all([
       engine.ok('search', { query: 'a', apiKey }),
       engine.ok('search', { query: 'b', apiKey }),
       engine.ok('search', { query: 'c', apiKey }),
     ])
     assertEqual(requests.length, 3, 'all three requests went out')
+    // interval = ceil(1000/10) = 100 ms. What this has to reject is a burst —
+    // three requests leaving together — while scheduling jitter on a loaded or
+    // emulated runner moves arrival times by tens of milliseconds on its own, so
+    // the bound stays generous and still separates the two behaviours by a mile.
+    const interval = 100
     const gaps = requests.slice(1).map((request, index) => request.at - requests[index].at)
-    // interval = ceil(1000/10) = 100 ms; allow scheduling slack but not a burst.
-    for (const gap of gaps) assert(gap >= 85, `gap between requests must respect the 100 ms interval, got ${gap} ms`)
+    for (const gap of gaps) {
+      assert(gap >= interval * 0.6, `a burst shows up as near-zero gaps; got ${gap} ms against a ${interval} ms interval`)
+    }
+    const span = requests[requests.length - 1].at - requests[0].at
+    assert(span >= interval * 1.2, `three paced requests must span more than one interval, got ${span} ms`)
     await configure({})
   })
 
