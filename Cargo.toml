@@ -1,0 +1,20 @@
+# Workspace root.
+#
+# The published artifact is the cordis plugin in this directory; the Rust engine
+# under `crates/` is its back end. Keeping the workspace at the repository root
+# is what makes `cargo build --release` put the binary exactly where
+# `lib/bridge.js` looks for it (`target/release/`, and `bin/` after `npm run
+# build:engine`).
+[workspace]
+members = ["crates/engine"]
+resolver = "2"
+
+[profile.release]
+# The engine is I/O bound, so optimise for a small, fast-to-start binary rather
+# than for peak throughput: a sidecar pays process-start latency on every
+# cold call, and a harness ships it next to the plugin.
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

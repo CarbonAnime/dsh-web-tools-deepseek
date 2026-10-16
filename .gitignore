@@ -1,0 +1,15 @@
+# Rust build output. The committed engine lives in `bin/`.
+/target/
+
+# Everything in node_modules is installed by the package manager, except the two
+# vendored DSH packages that make a plain directory copy work without an install.
+/node_modules/*
+!/node_modules/@deepseek-ai
+!/node_modules/@deepseek-ai/**
+
+# Local debris.
+*.log
+.DS_Store
+Thumbs.db
+/.recon/
+/scratch/

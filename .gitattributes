@@ -1,0 +1,15 @@
+# Store text as LF in the repository, regardless of the authoring platform.
+* text=auto eol=lf
+
+# Binaries must never be normalized or diffed.
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.png binary
+*.jpg binary
+*.ico binary
+
+# Keep generated/vendored content out of CRLF churn.
+Cargo.lock -text
+node_modules/** -text

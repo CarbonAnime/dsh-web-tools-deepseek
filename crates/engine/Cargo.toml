@@ -1,0 +1,33 @@
+[package]
+name = "dsh-web-tools-deepseek-engine"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.74"
+description = "Rust engine behind the dsh-web-tools-deepseek DSH plugin: DeepSeek native Search/Fetch API client speaking newline-delimited JSON over stdio"
+license = "MIT"
+repository = "https://github.com/CarbonAnime/dsh-web-tools-deepseek"
+publish = false
+
+[[bin]]
+name = "dsh-web-tools-deepseek"
+path = "src/main.rs"
+
+[dependencies]
+# JSON is the wire format in both directions (stdio protocol and the API body).
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Async runtime: stdin/stdout driving, one task per in-flight request, sleeps for
+# rate limiting and backoff, and per-attempt deadlines.
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "io-util", "sync", "time"] }
+# CancellationToken, so a caller abort actually stops an in-flight HTTP request
+# instead of merely abandoning its result.
+tokio-util = "0.7"
+# TLS via the platform verifier (`default-tls` = schannel on Windows, OpenSSL
+# elsewhere). Chosen over rustls on purpose: rustls' crypto providers need a C
+# toolchain and NASM on Windows, which would make `cargo build` fail on a stock
+# machine.
+reqwest = { version = "0.12", default-features = false, features = ["json", "default-tls"] }
+# WHATWG-style URL parsing for the local `fetch` pre-checks.
+url = "2"
+# `Retry-After` may be an HTTP-date, not just delta-seconds.
+httpdate = "1"

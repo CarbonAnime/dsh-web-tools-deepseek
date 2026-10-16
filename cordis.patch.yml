@@ -1,0 +1,31 @@
+# dsh-web-tools-deepseek —— 组合包补丁（bundle patch）
+#
+# 这个包做两件事：
+#   ① 插入自己的插件行 → 向 ctx.web 注册 deepseek-tools-api 的 search / fetch provider
+#   ② 覆盖 web 行 → 把搜索与抓取都指到新 provider
+#
+# ⚠️ 坑 ①：patch 的语义是【该行 config 整体替换】，不做深合并。
+#          覆盖 web 行时 searchProvider 与 fetchProvider 两个键都必须重述，
+#          少写一个那个键就没了。
+# ⚠️ 坑 ②：装上本包之后同时可用的 provider 会有 deepseek-official / http /
+#          deepseek-tools-api 三个；不配 id 接缝会抛 WEB_PROVIDER_AMBIGUOUS。
+#          所以下面第 ② 段不是可选项。
+#
+# 回退：把第 ② 段两个键改回 deepseek-official / http 后重启 DSH；
+#       或者整包移除（dsh plugin --profile desktop remove dsh-web-tools-deepseek）。
+
+# ① 挂载本插件
+- insert:
+    - id: web-tools-deepseek
+      name: dsh-web-tools-deepseek
+      config:
+        apiKeyEnv: DEEPSEEK_API_KEY
+        searchProviderId: deepseek-tools-api
+        fetchProviderId: deepseek-tools-api
+
+# ② 把 web 行指向新 provider
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: deepseek-tools-api
+    fetchProvider: deepseek-tools-api

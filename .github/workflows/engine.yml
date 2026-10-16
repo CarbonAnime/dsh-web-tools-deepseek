@@ -1,0 +1,86 @@
+/**
+ * Build the Rust engine on every platform, prove it, and publish the binaries.
+ *
+ * `bin/` ships a Windows x64 engine so that a plain checkout is usable without a
+ * toolchain; this workflow is what keeps the other platforms, and the release
+ * assets, honest.
+ */
+
+name: engine
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: fmt + clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets -- -D warnings
+
+  engine:
+    name: ${{ matrix.platform }}-${{ matrix.arch }}
+    needs: lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, platform: win32,  arch: x64 }
+          - { os: ubuntu-latest,  platform: linux,  arch: x64 }
+          - { os: macos-14,       platform: darwin, arch: arm64 }
+          - { os: macos-13,       platform: darwin, arch: x64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # The JS side needs a schema library; it is vendored for directory installs,
+      # but a git checkout installs it properly.
+      - run: npm install --no-audit --no-fund
+        continue-on-error: true
+      - run: cargo build --release
+      - run: node scripts/stage-engine.mjs --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+      - name: Protocol conformance (mock server, no API key)
+        run: node test/engine.mjs
+      - name: Plugin unit tests (no API key)
+        run: node test/unit.mjs
+        env:
+          DSH_WEB_TOOLS_DEEPSEEK_BIN: ${{ github.workspace }}/bin/dsh-web-tools-deepseek-${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.platform == 'win32' && '.exe' || '' }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-web-tools-deepseek-${{ matrix.platform }}-${{ matrix.arch }}
+          path: bin/*
+          if-no-files-found: error
+
+  release:
+    name: attach binaries to the release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: engine
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: assets/*
+          generate_release_notes: true
