@@ -1,0 +1,63 @@
+name: Feature request / 功能建议
+description: A new capability, a config knob, or a behaviour change. 新能力、配置项或行为调整建议。
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the problem before the solution — a concrete pain point is
+        much easier to design against than an abstract idea. 请先说清楚痛点，再说方案。
+        English or 中文 both fine.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve? / 想解决什么问题
+      description: The situation where the plugin gets in your way today.
+      placeholder: |
+        When I ... I have to ..., because the plugin ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour / 期望的行为
+      description: What should the plugin do instead? A config key, a mapping change, a new mode?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered / 考虑过的替代方案
+      description: Including "do nothing" and any workaround you already use.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which area? / 涉及范围
+      multiple: true
+      options:
+        - Search results (fields, ranking, `count`)
+        - Fetch output (Markdown, title, refusal handling)
+        - Native-search fallback
+        - Rust engine / performance
+        - Configuration surface
+        - Diagnostics
+        - Documentation
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check / 边界确认
+      options:
+        - label: This does not require changing the DSH host itself — it can live in this plugin. 不需要改 DSH 宿主，插件自身可实现。
+          required: true
+        - label: I searched existing issues and discussions for this idea. 已搜索过已有 issue 与 discussion。
+          required: true

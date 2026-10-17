@@ -1,0 +1,132 @@
+name: Bug report / 缺陷报告
+description: A wrong result, an error the plugin should have handled, a crash, or a log that lies. 结果错误、本应处理的报错、崩溃或日志异常。
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. 感谢反馈。
+
+        - Please read `README.md` / `README.zh-CN.md` and search existing issues first.
+        - **Redact secrets.** Diagnostics lines can contain the fetched URL — they must never contain the
+          API key, but scan before pasting. 请先抹掉密钥与隐私链接。
+        - English or 中文 both fine. 中英文都可以。
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight / 自查
+      options:
+        - label: I read the README and searched existing issues. 我已读过 README 并搜索过已有 issue。
+          required: true
+        - label: I redacted API keys, tokens and private URLs from everything pasted below. 已去除密钥与隐私链接。
+          required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which part is affected? / 受影响的部分
+      multiple: true
+      options:
+        - Search (`POST /v1/tools/search`)
+        - Fetch (`POST /v1/tools/fetch`)
+        - Fallback to the native search provider
+        - Engine startup / binary resolution
+        - Diagnostics log
+        - Configuration (`cordis.patch.yml`)
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened? / 发生了什么
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        1. `web_search` with query `...`
+        2. Expected a list of sources
+        3. Got `WebError: ...` / an empty list / a result that looked like page content
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction / 最小复现
+      description: The exact tool call, config stanza, or command. If it needs a specific URL or query, name it.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics log / 诊断日志
+      description: |
+        Paste the tail of the diagnostics file. Path: `%TEMP%\dsh-web-tools-deepseek.log` on Windows,
+        `$TMPDIR/dsh-web-tools-deepseek.log` on macOS/Linux.
+        Relocate it with `DSH_WEB_TOOLS_DEEPSEEK_DIAG_FILE`; turn it off with `DSH_WEB_TOOLS_DEEPSEEK_DIAG=0`.
+        `call` lines are the HTTP attempts (status, latency, attempt count).
+      render: text
+      placeholder: |
+        2026-10-16T18:34:32.639Z [info] [engine] engine 0.2.0 ready (pid 42276)
+        2026-10-16T18:35:02.401Z [call] {"label":"search","endpoint":"/v1/tools/search","status":200,"ok":true,"ms":1842,"attempts":1}
+    validations:
+      required: false
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version / 插件版本
+      description: The release tag you installed, or `version` in `package.json`.
+      placeholder: "0.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: dsh-version
+    attributes:
+      label: DSH version / DSH 版本
+      description: The DeepSeek Harness version loading the plugin.
+      placeholder: "0.2.0-rc.2"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How is the plugin installed? / 安装方式
+      options:
+        - Release binary (GitHub Releases)
+        - Built from source (`cargo build --release`)
+        - Local path via `file://` in `cordis.patch.yml`
+        - Other (explain below)
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: OS and architecture / 操作系统与架构
+      placeholder: "Windows 11 24H2 x64 / macOS 15.1 arm64 / Ubuntu 24.04 x64"
+    validations:
+      required: true
+
+  - type: input
+    id: rust
+    attributes:
+      label: Rust toolchain (source builds only) / Rust 工具链
+      description: Output of `rustc --version` when you built the engine yourself.
+      placeholder: "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else / 其它
+      description: Relevant config (redacted), workarounds you tried, related issues.
+    validations:
+      required: false

@@ -1,0 +1,13 @@
+# Issue chooser.
+#
+# Keep the blank issue disabled: every report goes through a form, so it always
+# carries the version / OS / diagnostics we need to reproduce. Free-form
+# questions belong in Discussions, not in the issue tracker.
+blank_issues_enabled: false
+contact_links:
+  - name: 使用提问 / Questions & setup help
+    url: https://github.com/CarbonAnime/dsh-web-tools-deepseek/discussions
+    about: How to wire the plugin into a profile, which provider is selected, config recipes. 使用提问与配置交流请走 Discussions。
+  - name: 安全漏洞 / Security vulnerability
+    url: https://github.com/CarbonAnime/dsh-web-tools-deepseek/security/advisories/new
+    about: API-key leaks, SSRF, process-boundary issues — report privately, never in a public issue. 请走私密报告。
